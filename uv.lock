@@ -170,22 +170,22 @@ name = "rigid"
 version = "0.1.0"
 source = { editable = "." }
 dependencies = [
-    { name = "pytest" },
     { name = "python-ulid" },
 ]
 
-[package.optional-dependencies]
-test = [
+[package.dev-dependencies]
+dev = [
     { name = "pytest" },
     { name = "pytest-cov" },
 ]
 
 [package.metadata]
-requires-dist = [
+requires-dist = [{ name = "python-ulid", specifier = ">=3.0.0" }]
+
+[package.metadata.requires-dev]
+dev = [
     { name = "pytest", specifier = ">=8.4.1" },
-    { name = "pytest", marker = "extra == 'test'", specifier = ">=7.0.0" },
-    { name = "pytest-cov", marker = "extra == 'test'", specifier = ">=4.0.0" },
-    { name = "python-ulid", specifier = ">=3.0.0" },
+    { name = "pytest-cov", specifier = ">=6.2.1" },
 ]
 
 [[package]]

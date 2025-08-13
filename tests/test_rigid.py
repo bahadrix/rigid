@@ -1,33 +1,34 @@
 import time
+import unittest
 
 from ulid import ULID
 
 from rigid import Rigid
 
 
-class TestRigid:
-    def setup_method(self):
+class TestRigid(unittest.TestCase):
+    def setUp(self):
         self.secret_key = b"test_secret_key_123456789"
         self.rigid = Rigid(self.secret_key)
 
     def test_init_with_default_signature_length(self):
         rigid = Rigid(b"test_key")
-        assert rigid.secret_key == b"test_key"
-        assert rigid.signature_length == 8
+        self.assertEqual(rigid.secret_key, b"test_key")
+        self.assertEqual(rigid.signature_length, 8)
 
     def test_init_with_custom_signature_length(self):
         rigid = Rigid(b"test_key", signature_length=16)
-        assert rigid.secret_key == b"test_key"
-        assert rigid.signature_length == 16
+        self.assertEqual(rigid.secret_key, b"test_key")
+        self.assertEqual(rigid.signature_length, 16)
 
     def test_generate_without_metadata(self):
         secure_ulid = self.rigid.generate()
         parts = secure_ulid.split('-')
-        assert len(parts) == 2
+        self.assertEqual(len(parts), 2)
 
         ulid_str, signature = parts
-        assert len(ulid_str) == 26
-        assert len(signature) > 0
+        self.assertEqual(len(ulid_str), 26)
+        self.assertGreater(len(signature), 0)
 
         ULID.from_str(ulid_str)
 
@@ -35,12 +36,12 @@ class TestRigid:
         metadata = "user_123"
         secure_ulid = self.rigid.generate(metadata=metadata)
         parts = secure_ulid.split('-')
-        assert len(parts) == 3
+        self.assertEqual(len(parts), 3)
 
         ulid_str, signature, returned_metadata = parts
-        assert len(ulid_str) == 26
-        assert len(signature) > 0
-        assert returned_metadata == metadata
+        self.assertEqual(len(ulid_str), 26)
+        self.assertGreater(len(signature), 0)
+        self.assertEqual(returned_metadata, metadata)
 
         ULID.from_str(ulid_str)
 
@@ -48,20 +49,20 @@ class TestRigid:
         secure_ulid = self.rigid.generate()
         is_valid, ulid_str, metadata = self.rigid.verify(secure_ulid)
 
-        assert is_valid is True
-        assert ulid_str is not None
-        assert len(ulid_str) == 26
-        assert metadata is None
+        self.assertTrue(is_valid)
+        self.assertIsNotNone(ulid_str)
+        self.assertEqual(len(ulid_str), 26)
+        self.assertIsNone(metadata)
 
     def test_verify_valid_ulid_with_metadata(self):
         test_metadata = "test_metadata"
         secure_ulid = self.rigid.generate(metadata=test_metadata)
         is_valid, ulid_str, metadata = self.rigid.verify(secure_ulid)
 
-        assert is_valid is True
-        assert ulid_str is not None
-        assert len(ulid_str) == 26
-        assert metadata == test_metadata
+        self.assertTrue(is_valid)
+        self.assertIsNotNone(ulid_str)
+        self.assertEqual(len(ulid_str), 26)
+        self.assertEqual(metadata, test_metadata)
 
     def test_verify_invalid_ulid_wrong_secret(self):
         secure_ulid = self.rigid.generate()
@@ -69,30 +70,30 @@ class TestRigid:
         different_rigid = Rigid(b"different_secret_key")
         is_valid, ulid_str, metadata = different_rigid.verify(secure_ulid)
 
-        assert is_valid is False
-        assert ulid_str is None
-        assert metadata is None
+        self.assertFalse(is_valid)
+        self.assertIsNone(ulid_str)
+        self.assertIsNone(metadata)
 
     def test_verify_malformed_ulid_single_part(self):
         is_valid, ulid_str, metadata = self.rigid.verify("invalid_format")
 
-        assert is_valid is False
-        assert ulid_str is None
-        assert metadata is None
+        self.assertFalse(is_valid)
+        self.assertIsNone(ulid_str)
+        self.assertIsNone(metadata)
 
     def test_verify_malformed_ulid_too_many_parts(self):
         is_valid, ulid_str, metadata = self.rigid.verify("part1-part2-part3-part4")
 
-        assert is_valid is False
-        assert ulid_str is None
-        assert metadata is None
+        self.assertFalse(is_valid)
+        self.assertIsNone(ulid_str)
+        self.assertIsNone(metadata)
 
     def test_verify_invalid_ulid_format(self):
         is_valid, ulid_str, metadata = self.rigid.verify("INVALID_ULID-SIGNATURE")
 
-        assert is_valid is False
-        assert ulid_str is None
-        assert metadata is None
+        self.assertFalse(is_valid)
+        self.assertIsNone(ulid_str)
+        self.assertIsNone(metadata)
 
     def test_verify_tampered_signature(self):
         secure_ulid = self.rigid.generate()
@@ -101,9 +102,9 @@ class TestRigid:
 
         is_valid, ulid_str, metadata = self.rigid.verify(tampered_ulid)
 
-        assert is_valid is False
-        assert ulid_str is None
-        assert metadata is None
+        self.assertFalse(is_valid)
+        self.assertIsNone(ulid_str)
+        self.assertIsNone(metadata)
 
     def test_verify_tampered_ulid(self):
         secure_ulid = self.rigid.generate()
@@ -114,9 +115,9 @@ class TestRigid:
 
         is_valid, ulid_str, metadata = self.rigid.verify(tampered_ulid)
 
-        assert is_valid is False
-        assert ulid_str is None
-        assert metadata is None
+        self.assertFalse(is_valid)
+        self.assertIsNone(ulid_str)
+        self.assertIsNone(metadata)
 
     def test_extract_ulid_valid(self):
         secure_ulid = self.rigid.generate()
@@ -124,14 +125,14 @@ class TestRigid:
 
         extracted_ulid = self.rigid.extract_ulid(secure_ulid)
 
-        assert extracted_ulid is not None
-        assert isinstance(extracted_ulid, ULID)
-        assert str(extracted_ulid) == original_ulid_str
+        self.assertIsNotNone(extracted_ulid)
+        self.assertIsInstance(extracted_ulid, ULID)
+        self.assertEqual(str(extracted_ulid), original_ulid_str)
 
     def test_extract_ulid_invalid(self):
         extracted_ulid = self.rigid.extract_ulid("invalid-signature")
 
-        assert extracted_ulid is None
+        self.assertIsNone(extracted_ulid)
 
     def test_extract_timestamp_valid(self):
         before_generation = time.time()
@@ -140,30 +141,30 @@ class TestRigid:
 
         timestamp = self.rigid.extract_timestamp(secure_ulid)
 
-        assert timestamp is not None
-        assert abs(timestamp - before_generation) < 1
+        self.assertIsNotNone(timestamp)
+        self.assertLess(abs(timestamp - before_generation), 1)
 
     def test_extract_timestamp_invalid(self):
         timestamp = self.rigid.extract_timestamp("invalid-signature")
 
-        assert timestamp is None
+        self.assertIsNone(timestamp)
 
     def test_encode_base32_zero(self):
         result = Rigid._encode_base32(b'\x00')
-        assert result == '0'
+        self.assertEqual(result, '0')
 
     def test_encode_base32_non_zero(self):
         result = Rigid._encode_base32(b'\x01\x02\x03')
-        assert isinstance(result, str)
-        assert len(result) > 0
+        self.assertIsInstance(result, str)
+        self.assertGreater(len(result), 0)
         for char in result:
-            assert char in "0123456789ABCDEFGHJKMNPQRSTVWXYZ"
+            self.assertIn(char, "0123456789ABCDEFGHJKMNPQRSTVWXYZ")
 
     def test_encode_base32_different_inputs(self):
         result1 = Rigid._encode_base32(b'\x01')
         result2 = Rigid._encode_base32(b'\x02')
 
-        assert result1 != result2
+        self.assertNotEqual(result1, result2)
 
     def test_different_signature_lengths(self):
         rigid_short = Rigid(self.secret_key, signature_length=4)
@@ -175,7 +176,7 @@ class TestRigid:
         short_sig_len = len(ulid_short.split('-')[1])
         long_sig_len = len(ulid_long.split('-')[1])
 
-        assert short_sig_len < long_sig_len
+        self.assertLess(short_sig_len, long_sig_len)
 
     def test_signature_length_consistency(self):
         rigid = Rigid(self.secret_key, signature_length=12)
@@ -186,7 +187,7 @@ class TestRigid:
         sig1_len = len(ulid1.split('-')[1])
         sig2_len = len(ulid2.split('-')[1])
 
-        assert sig1_len == sig2_len
+        self.assertEqual(sig1_len, sig2_len)
 
     def test_metadata_with_special_characters(self):
         metadata = "user:123@domain.com"
@@ -194,14 +195,14 @@ class TestRigid:
 
         is_valid, ulid_str, extracted_metadata = self.rigid.verify(secure_ulid)
 
-        assert is_valid is True
-        assert extracted_metadata == metadata
+        self.assertTrue(is_valid)
+        self.assertEqual(extracted_metadata, metadata)
 
     def test_empty_metadata(self):
         secure_ulid = self.rigid.generate(metadata="")
         parts = secure_ulid.split('-')
 
-        assert len(parts) == 2
+        self.assertEqual(len(parts), 2)
 
     def test_timing_attack_resistance(self):
         valid_ulid = self.rigid.generate()
@@ -215,13 +216,13 @@ class TestRigid:
         time2 = time.perf_counter() - start2
 
         time_diff = abs(time1 - time2)
-        assert time_diff < 0.001
+        self.assertLess(time_diff, 0.001)
 
     def test_generate_uniqueness(self):
         ulids = set()
         for _ in range(100):
             secure_ulid = self.rigid.generate()
-            assert secure_ulid not in ulids
+            self.assertNotIn(secure_ulid, ulids)
             ulids.add(secure_ulid)
 
     def test_cross_verification_different_instances(self):
@@ -231,8 +232,8 @@ class TestRigid:
         secure_ulid = rigid1.generate()
         is_valid, ulid_str, metadata = rigid2.verify(secure_ulid)
 
-        assert is_valid is True
-        assert ulid_str is not None
+        self.assertTrue(is_valid)
+        self.assertIsNotNone(ulid_str)
 
     def test_ulid_ordering(self):
         ulids = []
@@ -243,4 +244,8 @@ class TestRigid:
             time.sleep(0.001)
 
         sorted_ulids = sorted(ulids)
-        assert ulids == sorted_ulids
+        self.assertEqual(ulids, sorted_ulids)
+
+
+if __name__ == '__main__':
+    unittest.main()
