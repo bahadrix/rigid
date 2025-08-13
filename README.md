@@ -1,4 +1,4 @@
-# Rigid
+# RigID
 
 **Cryptographically secured ULIDs with built-in integrity verification**
 
