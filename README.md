@@ -22,6 +22,14 @@ Rigid generates universally unique lexicographically sortable identifiers (ULIDs
 - **Audit trails** - Verify ID authenticity in logs and records
 - **Multi-tenant applications** - Bind tenant context to prevent cross-tenant access
 
+## Installation
+
+This project is available on [PyPI](https://pypi.org/project/python-rigid/) and can be installed via pip:
+
+```bash
+pip install python-rigid
+```
+
 ## Quick Start
 
 ```python
