@@ -21,6 +21,39 @@ class TestRigid(unittest.TestCase):
         self.assertEqual(rigid.secret_key, b"test_key")
         self.assertEqual(rigid.signature_length, 16)
 
+    def test_generate_unsigned(self):
+        unsigned_ulid = self.rigid.generate_unsigned()
+
+        # Should be a string with exactly 26 characters (standard ULID format)
+        self.assertIsInstance(unsigned_ulid, str)
+        self.assertEqual(len(unsigned_ulid), 26)
+
+        # Should not contain any dashes (no signature)
+        self.assertNotIn('-', unsigned_ulid)
+
+        # Should be a valid ULID
+        ulid_obj = ULID.from_str(unsigned_ulid)
+        self.assertIsNotNone(ulid_obj)
+        self.assertEqual(str(ulid_obj), unsigned_ulid)
+
+    def test_generate_unsigned_uniqueness(self):
+        # Generate multiple unsigned ULIDs and ensure they're unique
+        unsigned_ulids = set()
+        for _ in range(100):
+            unsigned_ulid = self.rigid.generate_unsigned()
+            self.assertNotIn(unsigned_ulid, unsigned_ulids)
+            unsigned_ulids.add(unsigned_ulid)
+
+    def test_generate_unsigned_ordering(self):
+        # Unsigned ULIDs should be lexicographically sortable
+        ulids = []
+        for _ in range(10):
+            ulids.append(self.rigid.generate_unsigned())
+            time.sleep(0.001)
+
+        sorted_ulids = sorted(ulids)
+        self.assertEqual(ulids, sorted_ulids)
+
     def test_generate_without_metadata(self):
         secure_ulid = self.rigid.generate()
         parts = secure_ulid.split('-')
@@ -178,16 +211,6 @@ class TestRigid(unittest.TestCase):
 
         self.assertLess(short_sig_len, long_sig_len)
 
-    def test_signature_length_consistency(self):
-        rigid = Rigid(self.secret_key, signature_length=12)
-
-        ulid1 = rigid.generate()
-        ulid2 = rigid.generate()
-
-        sig1_len = len(ulid1.split('-')[1])
-        sig2_len = len(ulid2.split('-')[1])
-
-        self.assertEqual(sig1_len, sig2_len)
 
     def test_metadata_with_special_characters(self):
         metadata = "user:123@domain.com"

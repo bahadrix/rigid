@@ -17,6 +17,20 @@ class Rigid:
         self.secret_key = secret_key
         self.signature_length = signature_length
 
+    def generate_unsigned(self):
+        """
+        Generates a string representation of a new unique ULID (Universally
+        Unique Lexicographically Sortable Identifier). Each generated ULID
+        is a 128-bit identifier encoded as a string, providing a globally
+        unique and time-ordered identifier suitable for distributed systems.
+
+        It does not support verification and metadata since the id is not signed.
+
+        :return: A string representation of a newly generated ULID.
+        :rtype: str
+        """
+        return str(ULID())
+
     def generate(self, metadata: Optional[str] = None) -> str:
         """
         Generate a ULID with HMAC signature.

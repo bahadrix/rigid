@@ -71,6 +71,37 @@ else:
     print("❌ Invalid or tampered ID")
 ```
 
+### Unsigned ULID Generation
+
+For scenarios where you need simple unique identifiers without cryptographic signatures (e.g., internal use, non-security-critical operations, or when you need maximum compatibility with standard ULID format):
+
+```python
+from rigid import Rigid
+
+# Initialize Rigid (secret key not used for unsigned generation)
+rigid = Rigid(secret_key=b"any-key")
+
+# Generate a standard ULID without signature
+ulid = rigid.generate_unsigned()
+print(f"Unsigned ULID: {ulid}")
+# Output: 01HQZX9T4R8K2M3N7P5Q6S8V9W (26 characters, no signature)
+
+# Note: Unsigned ULIDs cannot be verified and don't support metadata
+# They are standard ULIDs - globally unique, sortable, time-based
+```
+
+**When to use unsigned ULIDs:**
+- Internal system identifiers that don't require verification
+- Compatibility with systems expecting standard ULID format
+- When signature overhead is not acceptable
+- High-throughput scenarios where cryptographic operations are too expensive
+
+**When to use signed ULIDs (`generate()`):**
+- Public-facing APIs and URLs
+- Security-critical operations
+- When tamper detection is required
+- Cross-service communication requiring integrity verification
+
 ### Binding Metadata to IDs
 
 Bind additional context like user IDs, resource types, or tenant information. The metadata is cryptographically protected by the same HMAC signature, making it tamper-proof:
@@ -222,6 +253,14 @@ Generate a secure ULID with HMAC signature.
 
 - `metadata` (str, optional): Additional data to bind to the ID
 - Returns: Secure ULID string in format `ULID-SIGNATURE` or `ULID-SIGNATURE-METADATA`
+
+### `generate_unsigned() -> str`
+
+Generate a standard ULID without signature or metadata support.
+
+- Returns: Standard ULID string (26 characters) without signature
+- Note: Does not support verification or metadata binding
+- Use cases: Internal identifiers, non-security-critical operations, standard ULID compatibility
 
 ### `verify(secure_ulid) -> tuple[bool, str | None, str | None]`
 
