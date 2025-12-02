@@ -28,13 +28,9 @@ jobs:
       with:
         enable-cache: true
 
-    - name: Install dependencies
+    - name: Install package and dependencies
       run: |
-        uv pip install --system python-ulid pytest
-
-    - name: Install package
-      run: |
-        uv pip install --system -e .
+        uv pip install --system -e ".[dev]"
 
     - name: Run tests
       run: |
